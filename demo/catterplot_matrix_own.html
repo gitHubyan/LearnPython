@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ScatterPlot</title>
+    <style>
+
+        body {
+            font: 10px sans-serif;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: #000;
+            shape-rendering: crispEdges;
+        }
+
+        .dot {
+            stroke: #000;
+        }
+
+
+    </style>
+
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <!-- Optional theme -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css"
+          integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+            crossorigin="anonymous"></script>
+
+    <script src="//d3js.org/d3.v3.min.js"></script>
+
+    <script>
+
+        function plot_scatter(divId, rowX, columnY) {
+            var margin = {top: 20, right: 20, bottom: 30, left: 40},
+                    width = 500 - margin.left - margin.right,
+                    height = 500 - margin.top - margin.bottom;
+
+            var x = d3.scale.linear().range([0, width]);
+            var y = d3.scale.linear().range([height, 0]);
+            var color = d3.scale.category10();
+            var xAxis = d3.svg.axis()
+                    .scale(x)
+                    .orient("bottom");
+
+            var yAxis = d3.svg.axis()
+                    .scale(y)
+                    .orient("left");
+
+            var svg = d3.select("#" + divId).append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+            //d3.csv("../seaborn-data-master/iris.csv", function(error, data) {
+           d3.tsv("data.tsv", function (error, data) {
+                if (error) throw error;
+
+                data.forEach(function (d) {
+                    d.columnY = +d[columnY];
+                    d.rowX = +d[rowX];
+                });
+
+
+                x.domain(d3.extent(data, function (d) {
+                    return d[rowX];
+                })).nice();
+                y.domain(d3.extent(data, function (d) {
+                    return d[columnY];
+                })).nice();
+
+                svg.append("g")
+                        .attr("class", "x axis")
+                        .attr("transform", "translate(0," + height + ")")
+                        .call(xAxis)
+                        .append("text")
+                        .attr("class", "label")
+                        .attr("x", width)
+                        .attr("y", -6)
+                        .style("text-anchor", "end")
+                        .text("Sepal Width (cm)");
+
+                svg.append("g")
+                        .attr("class", "y axis")
+                        .call(yAxis)
+                        .append("text")
+                        .attr("class", "label")
+                        .attr("transform", "rotate(-90)")
+                        .attr("y", 6)
+                        .attr("dy", ".71em")
+                        .style("text-anchor", "end")
+                        .text("Sepal Length (cm)");
+
+                svg.selectAll(".dot")
+                        .data(data)
+                        .enter().append("circle")
+                        .attr("class", "dot")
+                        .attr("r", 3.5)
+                        .attr("cx", function (d) {
+                            return x(d[rowX]);
+                        })
+                        .attr("cy", function (d) {
+                            return y(d[columnY]);
+                        })
+                        .style("fill", function (d) {
+                            return color(d.species);
+                        });
+
+                var legend = svg.selectAll(".legend")
+                        .data(color.domain())
+                        .enter().append("g")
+                        .attr("class", "legend")
+                        .attr("transform", function (d, i) {
+                            return "translate(0," + i * 20 + ")";
+                        });
+
+                legend.append("rect")
+                        .attr("x", width - 18)
+                        .attr("width", 18)
+                        .attr("height", 18)
+                        .style("fill", color);
+
+                legend.append("text")
+                        .attr("x", width - 24)
+                        .attr("y", 9)
+                        .attr("dy", ".35em")
+                        .style("text-anchor", "end")
+                        .text(function (d) {
+                            return d;
+                        });
+
+            });
+
+        }
+    </script>
+
+</head>
+
+<body>
+
+<div class="row">
+    <div class="col-md-3">
+        <div id="swsl"></div>
+        <script>plot_scatter('swsl', 'sepalWidth', 'sepalLength');</script>
+    </div>
+
+    <div class="col-md-3">
+        <div id="swpl"></div>
+        <script>plot_scatter('swpl', 'sepalWidth', 'petalLength');</script>
+    </div>
+
+    <div class="col-md-3">
+        <div id="swpw"></div>
+        <script>plot_scatter('swpw', 'sepalWidth', 'petalWidth');</script>
+    </div>
+
+    <div class="col-md-3">
+        <div id="slpw"></div>
+        <script>plot_scatter('slpw', 'sepalLength', 'petalWidth');</script>
+    </div>
+
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div id="slpl"></div>
+        <script>plot_scatter('slpl', 'sepalLength', 'petalLength');</script>
+    </div>
+
+    <div class="col-md-3">
+        <div id="plpw"></div>
+        <script>plot_scatter('plpw', 'petalLength', 'petalWidth');</script>
+    </div>
+
+    <div class="col-md-3">
+        <div id="plpl"></div>
+        <script>plot_scatter('plpl', 'petalLength', 'petalLength');</script>
+    </div>
+
+    <div class="col-md-3"></div>
+</div>
+</body>
+</html>
