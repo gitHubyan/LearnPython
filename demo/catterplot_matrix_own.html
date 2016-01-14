@@ -40,7 +40,7 @@
 
     <script>
 
-        function plot_scatter(divId, rowX, columnY) {
+        function plot_scatter(divId1, divId2, divId3, divId4, columnY) {
             var margin = {top: 20, right: 20, bottom: 30, left: 40},
                     width = 500 - margin.left - margin.right,
                     height = 500 - margin.top - margin.bottom;
@@ -56,122 +56,250 @@
                     .scale(y)
                     .orient("left");
 
-            var svg = d3.select("#" + divId).append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            var divId = [divId1, divId2, divId3, divId4];
+            var rowX = ['sepalLength', 'sepalWidth', 'petalLength', 'petalWidth'];
+            var svgArray = [];
+            for (var i = 0; i < 4; i++) {
+                svgArray[i] = d3.select("#" + divId[i]).append("svg")
+                        .attr("width", width + margin.left + margin.right)
+                        .attr("height", height + margin.top + margin.bottom)
+                        .append("g")
+                        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            }
 
             //d3.csv("../seaborn-data-master/iris.csv", function(error, data) {
-           d3.tsv("data.tsv", function (error, data) {
+            d3.tsv("data.tsv", function (error, data) {
+
                 if (error) throw error;
 
-                data.forEach(function (d) {
-                    d.columnY = +d[columnY];
-                    d.rowX = +d[rowX];
-                });
+                for (var i = 0; i < 4; i++) {
+                    if (columnY != rowX[i]) {
 
-
-                x.domain(d3.extent(data, function (d) {
-                    return d[rowX];
-                })).nice();
-                y.domain(d3.extent(data, function (d) {
-                    return d[columnY];
-                })).nice();
-
-                svg.append("g")
-                        .attr("class", "x axis")
-                        .attr("transform", "translate(0," + height + ")")
-                        .call(xAxis)
-                        .append("text")
-                        .attr("class", "label")
-                        .attr("x", width)
-                        .attr("y", -6)
-                        .style("text-anchor", "end")
-                        .text("Sepal Width (cm)");
-
-                svg.append("g")
-                        .attr("class", "y axis")
-                        .call(yAxis)
-                        .append("text")
-                        .attr("class", "label")
-                        .attr("transform", "rotate(-90)")
-                        .attr("y", 6)
-                        .attr("dy", ".71em")
-                        .style("text-anchor", "end")
-                        .text("Sepal Length (cm)");
-
-                svg.selectAll(".dot")
-                        .data(data)
-                        .enter().append("circle")
-                        .attr("class", "dot")
-                        .attr("r", 3.5)
-                        .attr("cx", function (d) {
-                            return x(d[rowX]);
-                        })
-                        .attr("cy", function (d) {
-                            return y(d[columnY]);
-                        })
-                        .style("fill", function (d) {
-                            return color(d.species);
+                        data.forEach(function (d) {
+                            d.rowX = +d[rowX[i]];
+                            d.columnY = +d[columnY];
                         });
+                        x = d3.scale.linear().range([0, width]);
+                        y = d3.scale.linear().range([height, 0]);
+                        x.domain(d3.extent(data, function (d) {
+                            return d[rowX[i]];
+                        })).nice();
+                        y.domain(d3.extent(data, function (d) {
+                            return d[columnY];
+                        })).nice();
 
-                var legend = svg.selectAll(".legend")
-                        .data(color.domain())
-                        .enter().append("g")
-                        .attr("class", "legend")
-                        .attr("transform", function (d, i) {
-                            return "translate(0," + i * 20 + ")";
-                        });
+                        svgArray[i].append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis)
+                                .append("text")
+                                .attr("class", "label")
+                                .attr("x", width)
+                                .attr("y", -6)
+                                .style("text-anchor", "end")
+                                .text(rowX[i] + " (cm)");
 
-                legend.append("rect")
-                        .attr("x", width - 18)
-                        .attr("width", 18)
-                        .attr("height", 18)
-                        .style("fill", color);
+                        svgArray[i].append("g")
+                                .attr("class", "y axis")
+                                .call(yAxis)
+                                .append("text")
+                                .attr("class", "label")
+                                .attr("transform", "rotate(-90)")
+                                .attr("y", 6)
+                                .attr("dy", ".71em")
+                                .style("text-anchor", "end")
+                                .text(columnY + " (cm)");
 
-                legend.append("text")
-                        .attr("x", width - 24)
-                        .attr("y", 9)
-                        .attr("dy", ".35em")
-                        .style("text-anchor", "end")
-                        .text(function (d) {
-                            return d;
-                        });
+                        svgArray[i].selectAll(".dot")
+                                .data(data)
+                                .enter().append("circle")
+                                .attr("class", "dot")
+                                .attr("r", 3.5)
+                                .attr("cx", function (d) {
+                                    return x(d[rowX[i]]);
+                                })
+                                .attr("cy", function (d) {
+                                    return y(d[columnY]);
+                                })
+                                .style("fill", function (d) {
+                                    return color(d.species);
+                                });
+                        var legend = svgArray[i].selectAll(".legend")
+                                .data(color.domain())
+                                .enter().append("g")
+                                .attr("class", "legend")
+                                .attr("transform", function (d, i) {
+                                    console.log(i);
+                                    return "translate(0," + i * 20 + ")";
+                                });
 
+                        legend.append("rect")
+                                .attr("x", width - 18)
+                                .attr("width", 18)
+                                .attr("height", 18)
+                                .style("fill", color);
+
+                        legend.append("text")
+                                .attr("x", width - 24)
+                                .attr("y", 9)
+                                .attr("dy", ".35em")
+                                .style("text-anchor", "end")
+                                .text(function (d) {
+                                    return d;
+                                });
+
+                    }
+                    else {
+                        var max = Math.ceil(d3.max(data, function (d) {
+                            return +d[columnY]
+                        }));
+                        var min = Math.floor(d3.min(data, function (d) {
+                            return +d[columnY]
+                        }));
+
+                        var size = max - min;
+                        var speciesArray = [];
+                        var k, j;
+                        for (k = 0; k < 11; k++) {
+                            var item = {"setosa": 0, "versicolor": 0, "virginica": 0};
+                            speciesArray.push(item);
+                        }
+                        for (k = 0; k < data.length; k++) {
+
+                            if (data[k].species == "setosa") {
+                                for (j = 0; j < 11; j++) {
+                                    if (data[k][columnY] >= j * size / 10.0 + min && data[k][columnY] < j * size / 10.0 + min + size / 10.0) {
+                                        speciesArray[j].setosa++;
+                                    }
+                                }
+                            }
+                            if (data[k].species == "versicolor") {
+                                for (j = 0; j < 11; j++) {
+                                    if (data[k][columnY] >= j * size / 10.0 + min && data[k][columnY] < j * size / 10.0 + min + size / 10.0) {
+                                        speciesArray[j].versicolor++;
+                                    }
+                                }
+                            }
+                            if (data[k].species == "virginica") {
+                                for (j = 0; j < 11; j++) {
+                                    if (data[k][columnY] >= j * size / 10.0 + min && data[k][columnY] < j * size / 10.0 + min + size / 10.0) {
+                                        speciesArray[j].virginica++;
+                                    }
+                                }
+                            }
+                        }
+
+                        var name = ["setosa", "versicolor", "virginica"];
+                        var layers = d3.layout.stack()(name.map(function (c) {
+                            return speciesArray.map(function (d, k) {
+                                return {x: k, y: d[c]};
+                            });
+                        }));
+
+                        var x = d3.scale.ordinal()
+                                .rangeRoundBands([0, width]);
+
+                        var y = d3.scale.linear()
+                                .rangeRound([height, 0]);
+                        x.domain(layers[0].map(function (d) {
+                            return d.x;
+                        }));
+
+                        y.domain([0, d3.max(layers[layers.length - 1], function (d) {
+                            return d.y0 + d.y;
+                        })]).nice();
+
+                        var layer = svgArray[i].selectAll(".layer")
+                                .data(layers)
+                                .enter().append("g")
+                                .attr("class", "layer")
+                                .style("fill", function (d, k) {
+                                    return color(name[k]);
+                                });
+                        layer.selectAll("rect")
+                                .data(function (d) {
+                                    return d;
+                                })
+                                .enter().append("rect")
+                                .attr("x", function (d) {
+                                    return x(d.x);
+                                })
+                                .attr("y", function (d) {
+                                    return y(d.y + d.y0);
+                                })
+                                .attr("width", x.rangeBand() - 1)
+                                .attr("height", function (d) {
+                                    return y(d.y0) - y(d.y + d.y0);
+                                });
+
+                        svgArray[i].append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis)
+                                .append("text")
+                                .attr("class", "label")
+                                .attr("x", width)
+                                .attr("y", -6)
+                                .style("text-anchor", "end")
+                                .text(rowX[i] + " (cm)");
+
+                        svgArray[i].append("g")
+                                .attr("class", "y axis")
+                                .call(yAxis)
+                                .append("text")
+                                .attr("class", "label")
+                                .attr("transform", "rotate(-90)")
+                                .attr("y", 6)
+                                .attr("dy", ".71em")
+                                .style("text-anchor", "end")
+                                .text(columnY + " (cm)");
+                        /****/
+                    }
+                }
             });
-
         }
-    </script>
 
+    </script>
 </head>
 
 <body>
-
 <div class="row">
-    <div class="col-md-3">
-        <div id="swsl"></div>
-        <script>plot_scatter('swsl', 'sepalWidth', 'sepalLength');</script>
+    <div class="col-md-3" id="slsl" ></div>
+    <div class="col-md-3" id="slsw" ></div>
+    <div class="col-md-3" id="slpl" ></div>
+    <div class="col-md-3" id="slpw" ></div>
+        <script>plot_scatter('slsl', 'slsw', 'slpl', 'slpw', 'sepalLength');</script>
     </div>
-
-    <div class="col-md-3">
-        <div id="swpl"></div>
-        <script>plot_scatter('swpl', 'sepalWidth', 'petalLength');</script>
+</div>
+<div class="row">
+    <div class="col-md-3" id="slslw" ></div>
+    <div class="col-md-3" id="slsww" ></div>
+    <div class="col-md-3" id="slplw" ></div>
+    <div class="col-md-3" id="slpww" ></div>
+        <script>plot_scatter('slslw', 'slsww', 'slplw', 'slpww', 'sepalWidth');</script>
     </div>
-
-    <div class="col-md-3">
-        <div id="swpw"></div>
-        <script>plot_scatter('swpw', 'sepalWidth', 'petalWidth');</script>
-    </div>
-
-    <div class="col-md-3">
-        <div id="slpw"></div>
-        <script>plot_scatter('slpw', 'sepalLength', 'petalWidth');</script>
-    </div>
-
 </div>
 
 <div class="row">
+    <div class="col-md-3" id="slslpl" ></div>
+    <div class="col-md-3" id="slswpl" ></div>
+    <div class="col-md-3" id="slplpl" ></div>
+    <div class="col-md-3" id="slpwpl" ></div>
+        <script>plot_scatter('slslpl', 'slswpl', 'slplpl', 'slpwpl', 'petalLength');</script>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3" id="slslpw" ></div>
+    <div class="col-md-3" id="slswpw" ></div>
+    <div class="col-md-3" id="slplpw" ></div>
+    <div class="col-md-3" id="slpwpw" ></div>
+        <script>plot_scatter('slslpw', 'slswpw', 'slplpw', 'slpwpw', 'petalWidth');</script>
+    </div>
+</div>
+
+
+<!--<div class="row">
     <div class="col-md-3">
         <div id="slpl"></div>
         <script>plot_scatter('slpl', 'sepalLength', 'petalLength');</script>
@@ -184,10 +312,9 @@
 
     <div class="col-md-3">
         <div id="plpl"></div>
-        <script>plot_scatter('plpl', 'petalLength', 'petalLength');</script>
+        <script>plot_pillar('plpw', 'petalLength');</script>
     </div>
 
-    <div class="col-md-3"></div>
-</div>
+</div>-->
 </body>
 </html>

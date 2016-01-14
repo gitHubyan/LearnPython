@@ -56,8 +56,11 @@
     d3.tsv("../data/crimea.tsv", type, function (error, crimea) {
         if (error) throw error;
 
+        console.log(crimea);
         var layers = d3.layout.stack()(causes.map(function (c) {
+            console.log(c);
             return crimea.map(function (d) {
+                console.log(d[c]);
                 return {x: d.date, y: d[c]};
             });
         }));
